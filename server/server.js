@@ -1,0 +1,41 @@
+// FRAMEWORK CONFIGURATION
+// --- Always Import/Require on top ---
+const express = require("express");
+const cors = require("cors");
+const dotenv = require("dotenv");
+const connectDb = require('./config/dbConnection');
+const exampleRoute = require('./routes/example');
+
+// env file config
+dotenv.config();
+
+// Connect to the database
+connectDb();
+
+const app = express();
+const port = process.env.PORT || 5000;  // Default to port 8080
+
+// Middleware configuration
+app.use(express.json());  // Parse incoming JSON requests
+app.use(cors());  // Enable CORS for security
+
+// Set Handlebars (hbs) as the view engine
+app.set('view engine', 'hbs');
+
+// Route configuration
+app.use('/example', exampleRoute);  // Route for '/example'
+
+// Health check route
+app.get('/', (req, res) => {
+    res.send("Server is working");
+});
+
+app.get("/home",(req, res) =>{
+    res.render("home",{})
+
+});
+
+// APP CONFIG START
+app.listen(port, () => {
+    console.log(`Server running on http://localhost:${port}`);
+});
