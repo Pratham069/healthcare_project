@@ -9,3 +9,4 @@ router.post("/register", doctorDetailControllers.registerDoctor);
 router.get("/alldoctors", validateJwtToken, doctorDetailControllers.getAllDoctors);
 
 module.exports = router;
+// route
