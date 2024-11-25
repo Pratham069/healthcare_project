@@ -1,41 +1,68 @@
-// FRAMEWORK CONFIGURATION
-// --- Always Import/Require on top ---
+//Framework Configuration
 const express = require("express");
+const connectDb = require("./config/dbConnection");
+const errorHandler = require("./middlewares/errorHandler");
 const cors = require("cors");
-const dotenv = require("dotenv");
-const connectDb = require('./config/dbConnection');
-const exampleRoute = require('./routes/example');
+// const hbs = require("hbs");
+const path = require("path");
+const multer = require("multer");
+const upload = multer({dest:'./uploads' });
 
-// env file config
+const dotenv = require("dotenv");
 dotenv.config();
 
-// Connect to the database
 connectDb();
-
 const app = express();
-const port = process.env.PORT || 5000;  // Default to port 8080
+const port = process.env.PORT || 5000;
 
-// Middleware configuration
-app.use(express.json());  // Parse incoming JSON requests
-app.use(cors());  // Enable CORS for security
+app.use(express.json());
+app.use(cors());
 
-// Set Handlebars (hbs) as the view engine
+app.use(errorHandler);
+
+
+const hbs = require('hbs');
+hbs.registerPartials(path.join(__dirname, '/views/partials'));
 app.set('view engine', 'hbs');
 
-// Route configuration
-app.use('/example', exampleRoute);  // Route for '/example'
-
-// Health check route
-app.get('/', (req, res) => {
-    res.send("Server is working");
+app.use('/api/register', require("./routes/userRoutes"));
+app.use("/api/doctors", require("./routes/doctorRoutes"));
+app.use("/api/users", require("./routes/userRoutes"));
+app.use(errorHandler);
+//ROUTES BELOW
+app.get('/',(req,res)=>{
+    res.send("working");
 });
 
-app.get("/home",(req, res) =>{
-    res.render("home",{})
+app.get('/home', (req, res) => {
+    res.render("home", {
+        title: "Dynamic Home Page",
+        message: "Welcome to the dynamic home page!",
+        user: {
+            name: "John Doe",
+            age: 30
+        }
+    });
+})
 
+app.get('/allusers', (req, res) => {
+    // Mock array of user objects (replace with real data from a database)
+    const users = [
+        { name: "John Doe", age: 30, email: "johndoe@example.com", role: "Admin" },
+        { name: "Jane Smith", age: 25, email: "janesmith@example.com", role: "User" },
+        { name: "Alice Johnson", age: 28, email: "alicejohnson@example.com", role: "Moderator" }
+    ];
+    // Pass the users array to the view
+    res.render('users', { users });
 });
 
-// APP CONFIG START
-app.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
+
+app.post("/profile", upload.single("avatar"),function(req, res, next) {
+    console.log(req.body);
+    console.log(req.file);
+    return res.redirect("/home");
+})
+
+app.listen(port, () =>{
+    console.log(`Server running in port http://localhost:${port}`);
 });
